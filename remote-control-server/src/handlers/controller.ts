@@ -1,5 +1,6 @@
 import { RawData } from 'ws';
-import { CMD_TYPE } from '../enums';
+import { CMD_TYPE, STATUS } from '../enums';
+import { logger } from '../logger/logger';
 import { drawingHandler } from './drawing';
 import { navigationHandler } from './navigation';
 import { screenHandler } from './screen';
@@ -19,8 +20,8 @@ export const controller = async (data: RawData) => {
       case CMD_TYPE.SCREEN:
         const prntScr = await screenHandler();
         return prntScr;
-      default:
-        return;
     }
-  } catch {}
+  } catch {
+    logger(STATUS.ERROR);
+  }
 };

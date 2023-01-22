@@ -24,7 +24,8 @@ export const navigationHandler = async (
 
     case NAV_DIRECTION.POSITION:
       const { x, y } = await mouse.getPosition();
-
-      return `mouse_position ${x}, ${y}`;
+      return {
+        message: `mouse_position ${x} ${y}`
+      };
   }
 };

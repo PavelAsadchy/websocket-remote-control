@@ -10,5 +10,8 @@ export const screenHandler = async () => {
   const base64data = await image.getBase64Async(Jimp.MIME_PNG);
   const prefix = 'data:image/png;base64,';
 
-  return `prnt_scrn ${base64data.slice(prefix.length)}`;
+  return {
+    message: `prnt_scrn`,
+    data: base64data.slice(prefix.length)
+  };
 };

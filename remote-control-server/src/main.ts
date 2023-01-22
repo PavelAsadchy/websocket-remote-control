@@ -1,35 +1,45 @@
-import WebSocket,
-{
+import WebSocket, {
   WebSocketServer,
   createWebSocketStream,
   RawData
 } from 'ws';
 import 'dotenv/config';
 import { controller } from './handlers/controller';
+import { logger } from './logger/logger';
+import { STATUS } from './enums';
+import { ControllerResponse, ProcessedResponse } from './lib/models';
+import { formatSendData, processResponse } from './lib/helpers';
 
 const port = Number(process.env.PORT);
 
 const wss = new WebSocketServer({ port });
+logger(STATUS.START, String(port));
 
 wss.on('connection', (ws: WebSocket) => {
-  console.log('connected');
+  logger(STATUS.CONNECTION);
   const duplex = createWebSocketStream(ws, { encoding: 'utf8' });
 
   duplex.on('data', async (data: RawData) => {
-    console.log('received: %s', data);
-    const res = await controller(data);
-    // console.log(res);
-    ws.send(res || data);
+    logger(STATUS.DATA, String(data));
+    const res: ControllerResponse = await controller(data);
+
+    if (res) {
+      const { loggerMsg, clientResp }: ProcessedResponse = processResponse(res);
+      logger(STATUS.RESPONSE, loggerMsg);
+      ws.send(clientResp);
+    } else {
+      const processedMsg = formatSendData(String(data));
+      ws.send(processedMsg);
+    }
   });
 
   ws.on('close', () => {
-    process.stdout.write('Close connection');
+    logger(STATUS.CLOSE);
   });
+});
 
-  process.on("SIGINT", () => {
-    console.log('Exit')
-    ws.close();
-    wss.close();
-    process.exit(0);
-  });
+process.on("SIGINT", () => {
+  logger(STATUS.EXIT);
+  wss.close();
+  process.exit(0);
 });
